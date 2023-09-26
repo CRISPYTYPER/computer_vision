@@ -3,21 +3,20 @@ from PIL import Image
 
 
 # 3x3 1/9
-img = Image.open("lena_noisy.png")
+img = Image.open("lena_color.png")
 
 img = np.array(img)
 (height, width, channel) = img.shape
 print(height, width, channel)
 denoised_img = np.zeros((height, width, channel))
 
-box_filter = np.ones((11,11))/121
-box_filter = np.flip(box_filter, axis=None)
+box_filter = np.ones((5, 5))/25
 
 for c in range(channel):
-    for x in range(5, width-5):  # chk the boundary
-        for y in range(5, height-5):  # chk the boundary
+    for x in range(2, width-2):  # chk the boundary
+        for y in range(2, height-2):  # chk the boundary
 
-            tmp = img[y-5:y+6, x-5:x+6, c]  # 3x3 box
+            tmp = img[y-2:y+3, x-2:x+3, c]  # 3x3 box
             local_mean = np.sum(box_filter * tmp)
             denoised_img[y][x][c] = local_mean
 
