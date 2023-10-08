@@ -1,5 +1,6 @@
 import numpy as np
 from PIL import Image
+from numpy import linalg
 
 img = Image.open("checkerboard.png").convert("L")
 img.show()
@@ -32,30 +33,43 @@ for x in range(1, width-1):
         conv_y = np.sum(sobel_y*tmp)
         Ix[x,y] = conv_x
         Iy[x,y] = conv_y
-#
-#
-#
-# # FLOAT 2 UINT8
-# edge_img = edge_img.astype(np.uint8)
-#
-# # PSNR dB calculation
-# # Convert the images to NumPy arrays
-# original_data = img
-# denoised_data = edge_img
-#
-# # Calculate the Mean Squared Error (MSE)
-# mse = np.mean((original_data - denoised_data) ** 2)
-#
-# # Calculate the maximum pixel value
-# max_pixel_value = np.max(original_data)
-#
-# # Calculate PSNR in dB
-# psnr = 20 * np.log10(max_pixel_value) - 10 * np.log10(mse)
-#
-# print(f"PSNR: {psnr} dB")
-#
-#
-# edge_img = Image.fromarray(edge_img)
-# edge_img.show()
-#
-# # result: edge detected without noise, but the edge is to blurry
+
+# Define the window size for local computation
+window_size = 5
+
+# Initialize arrays to store components
+I_x_squared = np.zeros_like(img_array)
+I_y_squared = np.zeros_like(img_array)
+I_x_y = np.zeros_like(img_array)
+
+# Compute components within the window
+for x in range(1 + window_size // 2, width - window_size//2 - 1):
+    for y in range(1 + window_size // 2, height - window_size//2 - 1):
+        I_x_squared[x, y] = np.sum(Ix[x-window_size//2:x+window_size//2+1, y-window_size//2:y+window_size//2+1]**2)
+        I_y_squared[x, y] = np.sum(Iy[x - window_size // 2:x + window_size // 2 + 1, y - window_size // 2:y + window_size // 2 + 1] ** 2)
+        I_x_y[y, x] = np.sum(Ix[x-window_size//2:x+window_size//2+1, y-window_size//2:y+window_size//2+1]*Iy[x - window_size // 2:x + window_size // 2 + 1, y - window_size // 2:y + window_size // 2 + 1])
+
+# Assemble the Harris matrx
+H = np.array([[I_x_squared, I_x_y],
+              [I_x_y, I_y_squared]])
+
+
+large_eigen = np.zeros_like(img_array)
+small_eigen = np.zeros_like(img_array)
+
+# Compute components within the window
+for x in range(1 + window_size // 2, width - window_size//2 - 1):
+    for y in range(1 + window_size // 2, height - window_size//2 - 1):
+        # Decompose the Harris matrix H at (x,y) into eigenvalues and eigenvectors
+        eigenvalues, eigenvectors = np.linalg.eig(H[:,:,x,y])
+
+        # Sort eigenvalues in descending order
+        eigenvalues = np.sort(eigenvalues)[::-1]
+        large_eigen[x][y] = eigenvalues[0]
+        small_eigen[x][y] = eigenvalues[1]
+
+large_eigen_img = Image.fromarray(large_eigen.astype(np.uint8))
+small_eigen_img = Image.fromarray(small_eigen.astype(np.uint8))
+large_eigen_img.show()
+small_eigen_img.show()
+
