@@ -31,6 +31,10 @@ for c in range(channel):
             local_mean_ix = np.sum(ix_filter * tmp)
             local_mean_iy = np.sum(iy_filter * tmp)
             denoised_img[y][x][c] = (local_mean_ix ** 2 + local_mean_iy ** 2) ** (1 / 2)
+            if denoised_img[y][x][c] > 255:
+                denoised_img[y][x][c] = 255
+            elif denoised_img[y][x][c] < 0:
+                denoised_img[y][x][c] = 0
 
 
 # FLOAT 2 UINT8
