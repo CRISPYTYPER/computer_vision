@@ -1,0 +1,16 @@
+import numpy as np
+import cv2 as cv
+import matplotlib.pyplot as plt
+img1 = cv.imread('frame10.png',cv.IMREAD_GRAYSCALE) # query image
+img2 = cv.imread('frame11.png',cv.IMREAD_GRAYSCALE) # train image
+# Initial SIFT detector
+sift = cv.SIFT()
+# find the keypoints and descriptor with SIFT
+kp1, des1 = sift.detectAndCompute(img1,None)
+kp2, des2 = sift.detectAndCompute(img2,None)
+# BFMatcher with default params
+bf = cv.BFMatcher()
+matches = bf.knnMatch(des1, des2, k=1)
+img3 = cv.drawMatchesKnn(img1, kp1, img2, kp2, matches, None, flags=cv.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
+plt.imshow(img3)
+plt.show()
