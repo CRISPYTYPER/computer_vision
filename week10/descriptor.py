@@ -69,21 +69,21 @@ print(f"max index: {max_index}")
 
 #step 5.
 dominant_angle = max(angle_histogram)#degree (not radian)
-
+# print(dominant_angle)
 
 #step 6. do rotation normalization
 rot_matrix = cv.getRotationMatrix2D((patch_size/2, patch_size/2), -dominant_angle, 1)
 rot_W = cv.warpAffine(W, rot_matrix, (patch_size, patch_size))
 
-
 #step 7. extract 16x16 window
 w = rot_W[patch_size_half-8 : patch_size_half+8, patch_size_half-8 : patch_size_half+8]#16x16 window w
+# print(w.shape)
 
 #step 8. divide w into 4x4 cells
-cell = []
+cell = [[] for i in range(16)]
 for i in range(4):
     for j in range(4):
-        cell[i*4+j] = w[4*j:4*(j+1), 4*i:4*(i+1)]
+        cell[i*4+j] = w[4*i:4*(i+1), 4*j:4*(j+1)]
 # cell[0] = w[0:4, 0:4]
 # cell[1] = w[4:8, 0:4]
 # cell[2] = w[8:12, 0:4]
@@ -91,15 +91,19 @@ for i in range(4):
 # ...
 
 #step 9. build hog for each cell
-# hog = []
-for i in range(4):
-    for j in range(4):
-        hog[i*4+j] = w[4*j:4*(j+1), 4*i:4*(i+1)]
+hog = [[0 for j in range(8)] for i in range(16)]
+for k in range(16): # 각 cell 순회용
+    for i in range(4): # 세로 진행용
+        for j in range(4): # 가로 진행용
+            for q in range(8): # Hog 제작용
+                if(cell[k][i][j]>=q*0.125 and cell[k][i][j]<(q+1)*0.125):
+                    hog[k][q] += 1
 #hog[0] = hog from cell[0]
 #hog[1] = hog from cell[1]
 
 #step 10. construct 128-dim dscr
 sift_dscr = []
 for n in range(16):
-    sift_dscr = sift_dscr + cell[n]
+    sift_dscr = sift_dscr + hog[n]
 
+print(sift_dscr)
