@@ -107,3 +107,4 @@ for n in range(16):
     sift_dscr = sift_dscr + hog[n]
 
 print(sift_dscr)
+print(np.sum(sift_dscr))
